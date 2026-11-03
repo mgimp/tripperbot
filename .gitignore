@@ -1,0 +1,61 @@
+# ROS2 colcon build output
+build/
+install/
+log/
+
+# ROS1 / catkin leftovers
+devel/
+logs/
+.catkin_workspace
+
+# ROS bag files
+*.bag
+*.db3
+*.mcap
+rosbag2_*/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+.pytest_cache/
+.mypy_cache/
+venv/
+.venv/
+
+# C++ build artifacts
+*.o
+*.so
+*.a
+*.out
+*.d
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+Makefile
+
+# Maps and generated data
+*.pgm
+*.pcd
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.clangd/
+.cache/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Secrets and local settings
+.env
+*.pem
+*.key
+*.local
