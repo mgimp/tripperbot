@@ -16,6 +16,8 @@ class JoystickMonitor(Node):
     def __init__(self):
         super().__init__('joystick_monitor')
 
+        # TODO: Edit subscriber node to read /user_pins
+        # TODO: Remove subscriber callback
         self.subscription = self.create_subscription(
             Int32MultiArray,
             '/user_pins',
@@ -23,7 +25,8 @@ class JoystickMonitor(Node):
             10
         )
         self.subscription
-    
+
+        # TODO: Edit publisher to report a boolean 'tripped' value
         self.publisher_ = self.create_publisher(
             Bool, 
             'tripped', 
@@ -39,6 +42,8 @@ class JoystickMonitor(Node):
 
     def listener_callback(self):
         pass
+
+    # TODO: Write a function to asses whether joystick is tripped or not tripped and change reported boolean depending on the result
 
 def main(args=None):
     rclpy.init(args=args)
