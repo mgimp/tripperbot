@@ -7,8 +7,8 @@
   <maintainer email="gimpelem@oregonstate.edu">Matthew Gimpelevich</maintainer>
   <license>null</license>
 
-  <exec_depends>rclpy</exec_depends>
-  <exec_depends>std_msgs</exec_depends>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
 
 
   <test_depend>ament_copyright</test_depend>
