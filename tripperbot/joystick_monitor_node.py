@@ -1,5 +1,5 @@
 import rclpy
-from rclpy import Node
+from rclpy.node import Node
 
 from std_msgs.msg import Int32MultiArray, Bool
 
@@ -20,7 +20,7 @@ class JoystickMonitor(Node):
         self.subscription = self.create_subscription(
             Int32MultiArray,
             'user_pins',
-            self.timer_callback,
+            self.listener_callback,
             10
         )
         self.subscription
@@ -31,20 +31,27 @@ class JoystickMonitor(Node):
             10
         )
 
+        self.pins = []
         timer_period = 0.5 # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
-    def timer_callback(self, msg_in):
+    def listener_callback(self, msg_in):
+        self.pins = msg_in.data
+
+    def timer_callback(self):
+        if self.pins is None:  # Wait until first message is received
+            return
+
         msg_out = Bool()
 
         # Test if joystick has left resting position
         neutral = 1024 / 2 - 1                                      # Value of joystick at resting position
-        if abs((msg_in.data[0] | msg_in.data[1]) - neutral) > + 100:  
+        if abs(self.pins[0] - neutral) > + 100 or abs(self.pins[1] - neutral) > 100:  
             msg_out.data = True
-        else: msg_out = False
+        else: msg_out.data = False
 
         self.publisher_.publish(msg_out)                            # Actually publishes msg_out
-        self.get_logger().info('Publishing : "%s"' % msg_out.data)  # Print to console
+        # self.get_logger().info('Publishing : "%s"' % msg_out.data)  # Print to console
 
 def main(args=None):
     rclpy.init(args=args)
