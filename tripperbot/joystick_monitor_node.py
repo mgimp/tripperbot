@@ -1,7 +1,7 @@
 import rclpy
 from rclpy import Node
 
-from std_msg_outs.msg_out import Int32MultiArray, Bool
+from std_msgs.msg import Int32MultiArray, Bool
 
 # /user_pins varies between [0, 1023] on each pin
 # layout:
