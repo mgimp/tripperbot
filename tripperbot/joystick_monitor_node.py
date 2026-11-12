@@ -1,7 +1,7 @@
 import rclpy
 from rclpy import Node
 
-from std_msgs.msg import Int32MultiArray, Bool
+from std_msg_outs.msg_out import Int32MultiArray, Bool
 
 # /user_pins varies between [0, 1023] on each pin
 # layout:
@@ -17,17 +17,14 @@ class JoystickMonitor(Node):
     def __init__(self):
         super().__init__('joystick_monitor')
 
-        # TODO: Edit subscriber node to read /user_pins
-        # TODO: Remove subscriber callback
         self.subscription = self.create_subscription(
             Int32MultiArray,
-            '/user_pins',
-            self.listener_callback,
+            'user_pins',
+            self.timer_callback,
             10
         )
         self.subscription
 
-        # TODO: Edit publisher to report a boolean 'tripped' value
         self.publisher_ = self.create_publisher(
             Bool, 
             'pulled', 
@@ -37,15 +34,17 @@ class JoystickMonitor(Node):
         timer_period = 0.5 # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
-    def timer_callback(self):
-        msg = Bool()
+    def timer_callback(self, msg_in):
+        msg_out = Bool()
 
-        msg.data = True                                         # TODO: adjust to be the result of /user_pins data
+        # Test if joystick has left resting position
+        neutral = 1024 / 2 - 1                                      # Value of joystick at resting position
+        if abs((msg_in.data[0] | msg_in.data[1]) - neutral) > + 100:  
+            msg_out.data = True
+        else: msg_out = False
 
-        self.publisher_.publish(msg)                            # Actually publishes msg
-        self.get_logger().info('Publishing : "%s"' % msg.data)  # Print to console
-
-    # TODO: Write a function to asses whether joystick is tripped or not tripped and change reported boolean depending on the result
+        self.publisher_.publish(msg_out)                            # Actually publishes msg_out
+        self.get_logger().info('Publishing : "%s"' % msg_out.data)  # Print to console
 
 def main(args=None):
     rclpy.init(args=args)
