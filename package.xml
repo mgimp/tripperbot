@@ -2,10 +2,14 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>tripperbot</name>
-  <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="user@todo.todo">user</maintainer>
-  <license>TODO: License declaration</license>
+  <version>1.0.0</version>
+  <description>Joystick monitor reports via /pulled topic whether installed joystick passes a threshold as monitored by /user_pins topic.</description>
+  <maintainer email="gimpelem@oregonstate.edu">user</maintainer>
+  <license>null</license>
+
+  <exec_depends>rclpy</exec_depends>
+  <exec_depends>std_msgs</exec_depends>
+
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
