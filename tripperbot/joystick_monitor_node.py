@@ -1,5 +1,6 @@
 import rclpy
 from rclpy import Node
+
 from std_msgs.msg import Int32MultiArray, Bool
 
 # /user_pins varies between [0, 1023] on each pin
@@ -29,28 +30,29 @@ class JoystickMonitor(Node):
         # TODO: Edit publisher to report a boolean 'tripped' value
         self.publisher_ = self.create_publisher(
             Bool, 
-            'tripped', 
+            'pulled', 
             10
         )
 
         timer_period = 0.5 # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
-        self.i = 0
 
     def timer_callback(self):
         msg = Bool()
 
-    def listener_callback(self):
-        pass
+        msg.data = True                                         # TODO: adjust to be the result of /user_pins data
+
+        self.publisher_.publish(msg)                            # Actually publishes msg
+        self.get_logger().info('Publishing : "%s"' % msg.data)  # Print to console
 
     # TODO: Write a function to asses whether joystick is tripped or not tripped and change reported boolean depending on the result
 
 def main(args=None):
     rclpy.init(args=args)
 
-    joystick_monitor = JoystickMonitor()
+    joystick_monitor = JoystickMonitor()    # Initialize class
 
-    rclpy.spin(joystick_monitor)
+    rclpy.spin(joystick_monitor)            # Start node and hand off to ROS
 
     joystick_monitor.destroy_node()
     rclpy.shutdown()
