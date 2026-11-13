@@ -25,6 +25,7 @@ setup(
     entry_points={
         'console_scripts': [
             'joystick_monitor = tripperbot.joystick_monitor_node:main'
+            'wrap_target = tropperbot.wrap_target_node:main'
         ],
     },
 )
