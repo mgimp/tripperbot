@@ -99,7 +99,7 @@ class WrapTarget(Node):
     def timer_callback(self):
         # Increment timer
         self.i += 1
-        if self.i % self.timer_period is 0:
+        if self.i % self.timer_period == 0:
             self.t += 1
 
         # Report change in parameter
@@ -114,7 +114,6 @@ class WrapTarget(Node):
         # Stop action if exceeded drive duration
         if self.t > self. drive_duration:
             self.destroy_node()
-            rclpy.shutdown()
 
         # Drive!
         if self.trigger is True:
