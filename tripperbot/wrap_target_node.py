@@ -33,21 +33,42 @@ class WrapTarget(Node):
 
         self.get_logger().info(f'Radius: {self.r}, Velocity: {self.v}')
 
+        self.trigger = False
+        self.a # angular speed m/s
+        self.publish_rate = 0.5 # Hz
+        self.drive_duration # seconds
+
         timer_period = 0.5 # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
-    def wrap(self):
+    def idle(self):
+        return
+
+    # TODO: drive()
+    def drive(self):
+        # turn speed = velocity / radius
+        self.get_logger().info(f'Velocity: {self.v}, Turn Rate: {self.v/self.r}')
         pass
 
     def listener_callback(self, msg):
         self.pulled = msg.data
 
     def timer_callback(self):
-        if self.pulled is False:
-            return
+
+        # Report change in parameter
+        if get_parameter('velocity').value is not self.v:
+
+            self.v = get_parameter('velocity').value
+            self.get_logger().info(f'Radius: {self.r}, Velocity: {self.v}')
 
         if self.pulled is True:
-            self.wrap()
+            self.trigger = True
+            self.get_logger().info('Trigger pulled!')
+
+        if self.trigger is True:
+            self.drive()
+
+        else: return
 
 def main(args=None):
     rclpy.init()
