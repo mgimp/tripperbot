@@ -1,6 +1,8 @@
 import rclpy
 from rclpy.node import Node
 
+from rclpy.signals import SignalHandlerOptions
+
 from std_msgs.msg import Bool
 from geometry_msgs.msg import TwistStamped
 
@@ -43,10 +45,10 @@ class WrapTarget(Node):
         """
         self.declare_parameter(
             'radius',
-            1, # meters
+            1.0, # meters
             ParameterDescriptor(
                 description='Radius in meters of the circle that trippebot will follow.',
-                floating_point_range=[FloatingPointRange(from_value=0.5, to_value=3)]
+                floating_point_range=[FloatingPointRange(from_value=0.1, to_value=3.0)]
                                 )
             ) 
         self.declare_parameter(
@@ -59,28 +61,24 @@ class WrapTarget(Node):
             )
         self.declare_parameter(
             'wrap_duration',
-            60 # seconds
+            60.0 # seconds
             )
 
         # Read parameter values
         self.r = self.get_parameter('radius').value
         self.cmd_vel.twist.linear.x = self.get_parameter('velocity').value
-        self.cmd_vel.twist.angular.z = 0 # for initially deiving straight
+        self.cmd_vel.twist.angular.z = 0.0 # for initially deiving straight
         self.wrap_duration = self.get_parameter('wrap_duration').value
 
         self.get_logger().info(f'Radius: {self.r}, Velocity: {self.cmd_vel.twist.linear.x}')
 
-        self.trigger = False
-        self.publish_rate = 0.5 # Hz
-
-        self.timer_period = 0.5 # seconds
-        self.i = 0 # timer tick
-        self.t = 0 # time, seconds
+        self.timer_period = 0.1 # s
+        self.i = 1 # timer tick
         
         self.current_state = TripperbotState.ADVANCE
         self.timer = self.create_timer(self.timer_period, self.timer_callback)
 
-    def paramter_callback(self):
+    def parameter_callback(self):
         # Controls new parameters
 
         x = self.get_parameter('velocity').value
@@ -99,8 +97,18 @@ class WrapTarget(Node):
         return
 
     def move(self):
-        self.publisher(self.cmd_vel)
+        self.cmd_vel.header.stamp = self.get_clock().now().to_msg()
+        self.cmd_vel.header.frame_id = 'base_link'
+        self.publisher.publish(self.cmd_vel)
         return
+
+    def finish(self):
+        self.stop_msg = TwistStamped()
+        self.stop_msg.header.stamp = self.get_clock().now().to_msg()
+        self.stop_msg.header.frame_id = 'base_link'
+        self.stop_msg.twist.linear.x = 0.0
+        self.stop_msg.twist.angular.z = 0.0
+        self.publisher.publish(self.stop_msg)
 
     def listener_callback(self, msg):
         self.pulled = msg.data
@@ -108,14 +116,13 @@ class WrapTarget(Node):
 
     def timer_callback(self):
         # Report change in parameter
-        if self.get_parameter('velocity').value is not self.cmd_vel.twist.linear.x:
-            self.paramter_callback()
+        if self.get_parameter('velocity').value != self.cmd_vel.twist.linear.x:
+            self.parameter_callback()
 
         match self.current_state:
             case TripperbotState.ADVANCE:
                 # Toggle driving action on trigger pull
                 if self.pulled is True:
-                    self.trigger = True
                     self.get_logger().info('Trigger pulled!')
                     self.cmd_vel.twist.angular.z = self.cmd_vel.twist.linear.x / self.r
                     self.current_state = TripperbotState.WRAP
@@ -125,17 +132,14 @@ class WrapTarget(Node):
             case TripperbotState.WRAP:
                 # Increment timer
                 self.i += 1
-                if self.i % self.timer_period == 0:
-                    self.t += 1
+                if self.i > self.wrap_duration/self.timer_period:
+                    self.get_logger().info('Timer exceeded')
+                    self.current_state = TripperbotState.FINISH
 
                 self.move()
 
-                # Stop action if exceeded move duration
-                if self.t > self.wrap_duration:
-                    self.current_state = TripperbotState.FINISH
-
             case TripperbotState.FINISH:
-                self.destroy_node()
+                self.finish()
 
         return
 
@@ -145,11 +149,17 @@ class TripperbotState(Enum):
     FINISH = auto()
 
 def main(args=None):
-    rclpy.init()
+    rclpy.init(args=args, signal_handler_options=SignalHandlerOptions.NO)
     wrap_target = WrapTarget()
-    rclpy.spin(wrap_target)
-    wrap_target.destroy_node()
-    rclpy.shutdown()
+    try:
+        rclpy.spin(wrap_target)
+    except KeyboardInterrupt:
+        wrap_target.get_logger().info('Keyboard interrupt')
+        wrap_target.finish()
+    finally:
+        wrap_target.destroy_node()
+        if rclpy.ok():
+            rclpy.shutdown()
 
 if __name__ == '__main__':
     main()
