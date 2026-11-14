@@ -53,10 +53,10 @@ class WrapTarget(Node):
             ) 
         self.declare_parameter(
             'velocity',
-            0.22, # m/s (max speed is 0.22m/s)
+            0.18, # m/s (max speed is 0.22m/s)
             ParameterDescriptor(
                 description='Tripper bot speed in m/s.',
-                floating_point_range=[FloatingPointRange(from_value=0.01, to_value=0.22)]
+                floating_point_range=[FloatingPointRange(from_value=0.01, to_value=0.2)]
                 )
             )
         self.declare_parameter(
